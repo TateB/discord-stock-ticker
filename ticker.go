@@ -723,18 +723,36 @@ func (s *Ticker) watchCryptoPrice() {
 					}
 				}
 
-				// set activity
-				wg := sync.WaitGroup{}
-				for _, sess := range shards {
-					err = sess.UpdateGameStatus(0, activity)
-					if err != nil {
-						logger.Errorf("Unable to set activity: %s", err)
+				// Custom activity messages
+				if len(custom_activity) > 0 {
+
+					// Only display custom activity
+					if itr == len(custom_activity) {
+						itr = 0
+						itrSeed = 0.0
+						activity = custom_activity[itr]
+					} else if math.Mod(itrSeed, 2.0) == 1.0 {
+						itr++
+						itrSeed++
+						activity = custom_activity[itr]
 					} else {
-						logger.Debugf("Set activity: %s", activity)
-						lastUpdate.With(prometheus.Labels{"type": "ticker", "ticker": s.Name, "guild": "None"}).SetToCurrentTime()
+						itrSeed++
+						activity = custom_activity[itr]
 					}
+
+					// set activity
+					wg := sync.WaitGroup{}
+					for _, sess := range shards {
+						err = sess.UpdateGameStatus(0, activity)
+						if err != nil {
+							logger.Errorf("Unable to set activity: %s", err)
+						} else {
+							logger.Debugf("Set activity: %s", activity)
+							lastUpdate.With(prometheus.Labels{"type": "ticker", "ticker": s.Name, "guild": "None"}).SetToCurrentTime()
+						}
+					}
+					wg.Wait()
 				}
-				wg.Wait()
 
 			} else {
 
