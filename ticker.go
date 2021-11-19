@@ -339,25 +339,26 @@ func (s *Ticker) watchStockPrice() {
 				// Custom activity messages
 				if len(custom_activity) > 0 {
 
-					// Display the real activity once per cycle
+					// Only display custom activity
 					if itr == len(custom_activity) {
 						itr = 0
 						itrSeed = 0.0
-					} else if math.Mod(itrSeed, 2.0) == 1.0 {
 						activity = custom_activity[itr]
+					} else if math.Mod(itrSeed, 2.0) == 1.0 {
 						itr++
 						itrSeed++
-					} else {
 						activity = custom_activity[itr]
+					} else {
 						itrSeed++
+						activity = custom_activity[itr]
 					}
-				}
 
-				err = dg.UpdateGameStatus(0, activity)
-				if err != nil {
-					logger.Errorf("Unable to set activity: %s", err)
-				} else {
-					logger.Debugf("Set activity: %s", activity)
+					err = dg.UpdateGameStatus(0, activity)
+					if err != nil {
+						logger.Errorf("Unable to set activity: %s", err)
+					} else {
+						logger.Debugf("Set activity: %s", activity)
+					}
 				}
 
 			} else {
